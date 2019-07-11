@@ -100,6 +100,53 @@
     }
   }
 
+function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size}, svg) {
+  let cont = svg.append("g").selectAll("circle")
+  .attr("class", "mg-anno")
+  .data(
+    data[0].filter(function(d){
+      if(d.annotations.length > 0){
+        return true;
+      }
+      else{ return false; }
+    }))
+    .enter()
+      .selectAll("circle")
+      .data(function(d){
+        return d.annotations.map(function(e){
+          return {"data": e, "x": d[x_accessor], "y": d[y_accessor]}
+        });
+      })
+      .enter()
+      .append("circle")
+      .attr("cx",  function(d){
+        return scales.X(d.x);
+      })
+      .attr("cy", function(d, i){
+        return scales.Y(d.y) - (Math.pow(d.data.r, 2) + (3 + d.data.r)*(i));
+      })
+      .attr("r", function(d){
+        return d.data.r;
+      })
+      .attr("fill", function(d){
+        return d.data.color; // do something cool with this
+      })
+      .on("mouseover", function(d){
+        d3.select(this).attr("stroke", "black")
+      })
+      .on("mouseout", function(d){
+        d3.select(this).attr("stroke", "none")
+      })
+
+      .attr("opacity", 1)
+/*
+
+  cont.append("circle")
+    .attr("cx",  0)
+    .attr("cy", 0)
+    .attr("r", 2.5)*/
+
+}
   function mg_add_area({data, target, colors}, plot, svg, which_line, line_id) {
     const areas = svg.selectAll(`.mg-main-area.mg-area${line_id}`);
     if (plot.display_area) {
@@ -270,10 +317,10 @@
       .attr('cy', 0)
       .attr('r', 0);
 
-    if (colors && colors.constructor === Array) {
+      if (colors && colors.constructor === Array ) {
       circle
         .attr('class', ({__line_id__}) => `mg-line${__line_id__}`)
-        .attr('fill', (d, i) => colors[i])
+//        .attr('fill', (d, i) => colors[i])
         .attr('stroke', (d, i) => colors[i]);
     } else {
       circle.attr('class', ({__line_id__}, i) => [
@@ -418,6 +465,7 @@
   function mg_configure_singleton_rollover({data}, svg) {
     svg.select('.mg-rollover-rect rect')
       .on('mouseover')(data[0][0], 0);
+
   }
 
   function mg_configure_voronoi_rollover({data, custom_line_color_map}, svg) {
@@ -561,6 +609,7 @@
           .attr('cx', args.scalefns.xf)
           .attr('cy', args.scalefns.yf)
           .attr('r', () => {
+            console.log(d)
             return args.active_point_size;
           });
       }
@@ -579,6 +628,7 @@
         }
       } else {
         mg_add_area(args, plot, svg, i, line_id);
+
       }
 
       mg_add_line(args, plot, svg, existing_line, i, line_id);
@@ -586,6 +636,7 @@
 
       // passing the data for the current line
       MG.call_hook('line.after_each_series', [this_data, existing_line, args]);
+
     }
   }
 
@@ -614,9 +665,11 @@
     const continueWithDefault = MG.call_hook('line.before_all_series', [args]);
     if (continueWithDefault !== false) {
       mg_draw_all_line_elements(args, plot, svg);
+
     }
 
     mg_plot_legend_if_legend_target(args.legend_target, plot.legend_text);
+
   }
 
   function mg_line_rollover_setup(args, graph) {
@@ -637,6 +690,8 @@
     } else {
       mg_add_single_line_rollover(args, svg, graph.rolloverOn(args), graph.rolloverOff(args), graph.rolloverMove(args), graph.rolloverClick(args));
     }
+    mg_add_anno(args, svg); // found it lmaoooo
+
   }
 
   function mg_update_rollover_circle(args, svg, d) {
@@ -649,7 +704,6 @@
         if (args.missing_is_hidden && list[index]['_missing']) {
           return;
         }
-
         if (mg_data_in_plot_bounds(datum, args)) mg_update_aggregate_rollover_circle(args, svg, datum);
       });
     } else if ((args.missing_is_hidden && d['_missing']) || d[args.y_accessor] === null) {
@@ -673,12 +727,13 @@
       .style('opacity', 1);
   }
 
-  function mg_update_generic_rollover_circle({scales, x_accessor, y_accessor, point_size}, svg, d) {
+  function mg_update_generic_rollover_circle({scales, x_accessor, y_accessor, point_size, colors}, svg, d) {
     svg.selectAll(`circle.mg-line-rollover-circle.mg-line${d.__line_id__}`)
       .classed('mg-line-rollover-circle', true)
       .attr('cx', () => scales.X(d[x_accessor]).toFixed(2))
       .attr('cy', () => scales.Y(d[y_accessor]).toFixed(2))
-      .attr('r', point_size)
+      .attr('r', point_size) // HERE
+      .attr('fill', "#B22222")
       .style('opacity', 1);
   }
 
@@ -802,6 +857,7 @@
       this.markers();
       this.mainPlot();
       this.rollover();
+
       this.windowListeners();
       if (args.brush) MG.add_brush_function(args);
       MG.call_hook('line.after_init', this);
@@ -810,6 +866,7 @@
     };
 
     this.mainPlot = function() {
+      
       mg_line_main_plot(args);
       return this;
     };
@@ -835,12 +892,12 @@
     this.rolloverOn = args => {
       const svg = mg_get_svg_child_of(args.target);
 
+
       return (d, i) => {
         mg_update_rollover_circle(args, svg, d);
         mg_trigger_linked_mouseovers(args, d, i);
 
         svg.selectAll('text')
-          .filter((g, j) => d === g)
           .attr('opacity', 0.3);
 
         // update rollover text except for missing data points

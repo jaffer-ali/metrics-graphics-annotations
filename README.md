@@ -4,6 +4,26 @@
 
 ![example](https://i.imgur.com/zviBBus.png)
 
+format: 
+[{
+		"year": "1945",
+		"sightings": 6,
+		"annotations": [{
+				"label": "10K",
+				"color": "#173f5f",
+				"r": 2.5
+			},
+			{
+				"label": "4",
+				"color": "#20639B",
+				"r": 2.5
+			}
+		]
+	},
+    ...
+]
+
+made for personal use
 
 _MetricsGraphics.js_ is a library optimized for visualizing and laying out time-series data. At under 80KB (minified), it provides a simple way to produce common types of graphics in a principled and consistent way. The library currently supports line charts, scatterplots, histograms, bar charts and data tables, as well as features like rug plots and basic linear regression.
 

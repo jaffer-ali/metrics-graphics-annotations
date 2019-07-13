@@ -100,8 +100,9 @@
     }
   }
 
-function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size}, svg) {
-  let cont = svg.append("g").selectAll("circle")
+function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size}, svg, rollover_on) {
+  let cont = svg.append("g")
+  cont.selectAll("circle")
   .attr("class", "mg-anno")
   .data(
     data[0].filter(function(d){
@@ -114,11 +115,22 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
       .selectAll("circle")
       .data(function(d){
         return d.annotations.map(function(e){
-          return {"data": e, "x": d[x_accessor], "y": d[y_accessor]}
+          return {"data": e,
+                  "x": d[x_accessor],
+                  "y": d[y_accessor],
+                  "actual_data": {
+                    [x_accessor]: d[x_accessor],
+                    [y_accessor]: d[y_accessor]
+                  }}
         });
       })
       .enter()
       .append("circle")
+      .attr('stroke-width', 0)
+      .attr('opacity', .5)
+      .attr("stroke", function(d){
+        return d3.rgb(d.data.color).darker(1);
+      })
       .attr("cx",  function(d){
         return scales.X(d.x);
       })
@@ -131,14 +143,25 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
       .attr("fill", function(d){
         return d.data.color; // do something cool with this
       })
-      .on("mouseover", function(d){
-        d3.select(this).attr("stroke", "black")
+      .on("mouseover", function(d, i){
+        d3.select(this)
+          .transition()
+          .duration(150)
+          .attr('stroke-width', 1);
+        rollover_on(d.actual_data);
       })
       .on("mouseout", function(d){
-        d3.select(this).attr("stroke", "none")
+        d3.select(this)
+          .transition()
+          .duration(150)
+          .attr('stroke-width', 0);  
       })
+      .append("title")
+        .text(function(d){
+          return d.data.label;
+        });
+    }
 
-      .attr("opacity", 1)
 /*
 
   cont.append("circle")
@@ -146,7 +169,6 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
     .attr("cy", 0)
     .attr("r", 2.5)*/
 
-}
   function mg_add_area({data, target, colors}, plot, svg, which_line, line_id) {
     const areas = svg.selectAll(`.mg-main-area.mg-area${line_id}`);
     if (plot.display_area) {
@@ -392,7 +414,9 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
       .datum(d => d == null ? null : d.data) // because of d3.voronoi, reassign d
       .attr('class', mg_line_class_string(args))
       .on('click', rollover_click)
-      .on('mouseover', rollover_on)
+      .on('mouseover', function(d){
+        rollover_on(d);
+      })
       .on('mouseout', rollover_off)
       .on('mousemove', rollover_move);
 
@@ -545,7 +569,9 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
       : args.height - args.bottom - args.top - args.buffer)
       .attr('opacity', 0)
       .on('click', rollover_click)
-      .on('mouseover', rollover_on)
+      .on('mouseover', function(d){
+        rollover_on(d);
+      })
       .on('mouseout', rollover_off)
       .on('mousemove', rollover_move);
 
@@ -690,7 +716,7 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
     } else {
       mg_add_single_line_rollover(args, svg, graph.rolloverOn(args), graph.rolloverOff(args), graph.rolloverMove(args), graph.rolloverClick(args));
     }
-    mg_add_anno(args, svg); // found it lmaoooo
+    mg_add_anno(args, svg, graph.rolloverOn(args)); // found it lmaoooo
 
   }
 

@@ -1,5 +1,5 @@
 {
-  "name": "metrics-graphics",
+  "name": "metrics-graphics-annotations",
   "version": "2.15.6",
   "description": "A library optimized for concise, principled data graphics and layouts",
   "main": "dist/metricsgraphics.js",
@@ -18,11 +18,7 @@
     "dist"
   ],
   "keywords": [
-    "metrics-graphics",
-    "metricsgraphicsjs",
-    "metricsgraphics",
-    "metricsgraphics.js",
-    "d3 charts"
+
   ],
   "author": "Mozilla",
   "contributors": [

@@ -1,3 +1,4 @@
+
 {
   function mg_line_color_text(elem, line_id, {color, colors}) {
     elem.classed('mg-hover-line-color', color === null)
@@ -100,55 +101,75 @@
     }
   }
 
-function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size}, svg, rollover_on) {
+function calculate_height_addition(annotations, d, x_acc){
+  let rad = (Math.pow(d.r, 2) + (3 + d.r)),
+      i = 0;
+  for (ind = 0; ind < annotations.length; ind++) {
+    if(d.data[x_acc] == annotations[ind].x){
+      i++;
+
+      if(ind == d.i){
+        return (rad * i/1.5);
+      }
+    }
+  }
+}
+
+function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size, annotations}, svg, rollover_on) {
   let cont = svg.append("g")
   cont.selectAll("circle")
   .attr("class", "mg-anno")
   .data(
-    data[0].filter(function(d){
-      if(d.annotations.length > 0){
+    annotations.filter(function(d){
+      if(d.x > Number(data[0][0][x_accessor]) && d.x < Number(data[0][data[0].length - 1][x_accessor])){ // if its within the daterange given
         return true;
       }
-      else{ return false; }
+      else{
+        return false; 
+      }
     }))
     .enter()
       .selectAll("circle")
-      .data(function(d){
-        return d.annotations.map(function(e){
-          return {"data": e,
-                  "x": d[x_accessor],
-                  "y": d[y_accessor],
-                  "actual_data": {
-                    [x_accessor]: d[x_accessor],
-                    [y_accessor]: d[y_accessor]
-                  }}
-        });
+      .data(function(d,index){
+        return [{ 
+          label:  d.label,  
+          color: d.color, 
+          r: d.r,
+          i: index,
+          data: data[0].filter(function(c){
+            if(c[x_accessor] == d.x){
+              return true;
+            }
+          })[0]
+        }] 
       })
       .enter()
       .append("circle")
       .attr('stroke-width', 0)
       .attr('opacity', .5)
       .attr("stroke", function(d){
-        return d3.rgb(d.data.color).darker(1);
+        return d3.rgb(d.color).darker(1);
       })
-      .attr("cx",  function(d){
-        return scales.X(d.x);
+      .attr("cx", function(d){
+        return scales.X(d.data[x_accessor]);
       })
       .attr("cy", function(d, i){
-        return scales.Y(d.y) - (Math.pow(d.data.r, 2) + (3 + d.data.r)*(i));
+        console.log(i)
+        //console.log(calculate_height_addition(annotations, d, x_accessor))
+        return scales.Y(d.data[y_accessor]) - calculate_height_addition(annotations, d, x_accessor);
       })
       .attr("r", function(d){
-        return d.data.r;
+        return d.r;
       })
       .attr("fill", function(d){
-        return d.data.color; // do something cool with this
+        return d.color; // do something cool with this
       })
       .on("mouseover", function(d, i){
         d3.select(this)
           .transition()
           .duration(150)
           .attr('stroke-width', 1);
-        rollover_on(d.actual_data);
+        rollover_on(d.data);
       })
       .on("mouseout", function(d){
         d3.select(this)
@@ -158,7 +179,7 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
       })
       .append("title")
         .text(function(d){
-          return d.data.label;
+          return d.label;
         });
     }
 
@@ -635,7 +656,6 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
           .attr('cx', args.scalefns.xf)
           .attr('cy', args.scalefns.yf)
           .attr('r', () => {
-            console.log(d)
             return args.active_point_size;
           });
       }

@@ -4426,7 +4426,7 @@ MG.button_layout = function (target) {
   var calculate_height_addition = function calculate_height_addition(annotations, d, x_acc) {
     var rad = Math.pow(d.r, 2) + (3 + d.r),
         i = 0;
-    for (ind = 0; ind < annotations.length; ind++) {
+    for (var ind = 0; ind < annotations.length; ind++) {
       if (d.data[x_acc] == annotations[ind].x) {
         i++;
 

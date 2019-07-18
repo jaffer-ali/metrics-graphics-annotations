@@ -4452,13 +4452,11 @@ MG.button_layout = function (target) {
     cont.selectAll("circle").attr("class", "mg-anno").data(annotations.filter(function (d) {
       if (d.x > data[0][0][x_accessor] && d.x < data[0][data[0].length - 1][x_accessor]) {
         // if its within the daterange given
-        console.log("true");
         return true;
       } else {
         return false;
       }
     })).enter().selectAll("circle").data(function (d, index) {
-      console.log(d);
       return [{
         label: d.label,
         color: d.color,
@@ -4466,8 +4464,6 @@ MG.button_layout = function (target) {
         i: index,
         data: data[0].filter(function (c) {
           if (c[x_accessor].getTime() == d.x.getTime()) {
-            console.log("y");
-            console.log(c);
             return true;
           }
         })[0]
@@ -4477,7 +4473,6 @@ MG.button_layout = function (target) {
     }).attr("cx", function (d) {
       return scales.X(d.data[x_accessor]);
     }).attr("cy", function (d, i) {
-      console.log(i);
       //console.log(calculate_height_addition(annotations, d, x_accessor))
       return scales.Y(d.data[y_accessor]) - calculate_height_addition(annotations, d, x_accessor);
     }).attr("r", function (d) {

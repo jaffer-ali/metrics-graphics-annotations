@@ -728,6 +728,7 @@ MG.options = { // <name>: [<defaultValue>, <availableType>]
   scales: [{}],
   scalefns: [{}],
   // Data
+  annotations: [[], ['object[]']],
   data: [[], ['object[]', 'number[]']], // the data object
   missing_is_zero: [false, 'boolean'], // assume missing observations are zero
   missing_is_hidden: [false, 'boolean'], // show missing observations as missing line segments
@@ -4427,7 +4428,7 @@ MG.button_layout = function (target) {
     var rad = Math.pow(d.r, 2) + (3 + d.r),
         i = 0;
     for (var ind = 0; ind < annotations.length; ind++) {
-      if (d.data[x_acc] == annotations[ind].x) {
+      if (d.data[x_acc].getTime() == annotations[ind].x.getTime()) {
         i++;
 
         if (ind == d.i) {
@@ -4449,20 +4450,24 @@ MG.button_layout = function (target) {
 
     var cont = svg.append("g");
     cont.selectAll("circle").attr("class", "mg-anno").data(annotations.filter(function (d) {
-      if (d.x > Number(data[0][0][x_accessor]) && d.x < Number(data[0][data[0].length - 1][x_accessor])) {
+      if (d.x > data[0][0][x_accessor] && d.x < data[0][data[0].length - 1][x_accessor]) {
         // if its within the daterange given
+        console.log("true");
         return true;
       } else {
         return false;
       }
     })).enter().selectAll("circle").data(function (d, index) {
+      console.log(d);
       return [{
         label: d.label,
         color: d.color,
         r: d.r,
         i: index,
         data: data[0].filter(function (c) {
-          if (c[x_accessor] == d.x) {
+          if (c[x_accessor].getTime() == d.x.getTime()) {
+            console.log("y");
+            console.log(c);
             return true;
           }
         })[0]

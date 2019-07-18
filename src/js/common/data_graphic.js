@@ -31,6 +31,7 @@ MG.options = { // <name>: [<defaultValue>, <availableType>]
   scales: [{}],
   scalefns: [{}],
   // Data
+  annotations: [[], ['object[]']],
   data: [[], ['object[]', 'number[]']], // the data object
   missing_is_zero: [false, 'boolean'], // assume missing observations are zero
   missing_is_hidden: [false, 'boolean'], // show missing observations as missing line segments

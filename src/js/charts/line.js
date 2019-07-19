@@ -105,7 +105,7 @@ function calculate_height_addition(annotations, d, x_acc){
   let rad = (Math.pow(d.r, 2) + (3 + d.r)),
       i = 0;
   for (var ind = 0; ind < annotations.length; ind++) {
-    if(d.data[x_acc].getTime() == annotations[ind].x.getTime()){
+    if(d.data[x_acc].toDateString() == annotations[ind].x.toDateString()){
       i++;
 
       if(ind == d.i){
@@ -116,32 +116,42 @@ function calculate_height_addition(annotations, d, x_acc){
 }
 
 function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size, annotations}, svg, rollover_on) {
+  var bisect = d3.bisector(function(datum) {
+    return datum[x_accessor];
+  }).right
   let cont = svg.append("g")
   cont.selectAll("circle")
   .attr("class", "mg-anno")
   .data(
     annotations.filter(function(d){
-      if(d.x > data[0][0][x_accessor] && d.x < data[0][data[0].length - 1][x_accessor]){ // if its within the daterange given
+      if (d.x > data[0][0][x_accessor] && d.x < data[0][data[0].length - 1][x_accessor]) {
         return true;
+      } else {
+        return false;
       }
-      else{
-        return false; 
-      }
-    }))
+    })
+    )
     .enter()
       .selectAll("circle")
       .data(function(d,index){
-        return [{ 
-          label:  d.label,  
-          color: d.color, 
+        var ts =  d.x,
+          index = bisect(data[0], ts),
+          startD = data[0][index - 1],
+          endD = data[0][index];
+        var interp = d3.interpolateNumber(startD[y_accessor], endD[y_accessor]),
+          range = endD[x_accessor] - startD[x_accessor],
+          Yval =  interp((ts % range) / range);
+
+        return [{
+          label: d.label,
+          color: d.color,
           r: d.r,
           i: index,
-          data: data[0].filter(function(c){
-            if(c[x_accessor].getTime() == d.x.getTime()){
-              return true;
+          data: {
+              [x_accessor]: d.x,
+              [y_accessor]: Yval
             }
-          })[0]
-        }] 
+          }]
       })
       .enter()
       .append("circle")
@@ -155,7 +165,7 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
       })
       .attr("cy", function(d, i){
         //console.log(calculate_height_addition(annotations, d, x_accessor))
-        return scales.Y(d.data[y_accessor])  - calculate_height_addition(annotations, d, x_accessor)
+        return scales.Y(d.data[y_accessor])//  - calculate_height_addition(annotations, d, x_accessor)
       })
       .attr("r", function(d){
         return d.r;

@@ -11,6 +11,8 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 (typeof window === 'undefined' ? global : window).MG = { version: '2.11' };
 
 //a set of helper functions, some that we've written, others that we've borrowed
@@ -4428,7 +4430,7 @@ MG.button_layout = function (target) {
     var rad = Math.pow(d.r, 2) + (3 + d.r),
         i = 0;
     for (var ind = 0; ind < annotations.length; ind++) {
-      if (d.data[x_acc].getTime() == annotations[ind].x.getTime()) {
+      if (d.data[x_acc].toDateString() == annotations[ind].x.toDateString()) {
         i++;
 
         if (ind == d.i) {
@@ -4448,25 +4450,33 @@ MG.button_layout = function (target) {
         default_anno_size = _ref6.default_anno_size,
         annotations = _ref6.annotations;
 
+    var bisect = d3.bisector(function (datum) {
+      return datum[x_accessor];
+    }).right;
     var cont = svg.append("g");
     cont.selectAll("circle").attr("class", "mg-anno").data(annotations.filter(function (d) {
       if (d.x > data[0][0][x_accessor] && d.x < data[0][data[0].length - 1][x_accessor]) {
-        // if its within the daterange given
         return true;
       } else {
         return false;
       }
     })).enter().selectAll("circle").data(function (d, index) {
+      var _data;
+
+      var ts = d.x,
+          index = bisect(data[0], ts),
+          startD = data[0][index - 1],
+          endD = data[0][index];
+      var interp = d3.interpolateNumber(startD[y_accessor], endD[y_accessor]),
+          range = endD[x_accessor] - startD[x_accessor],
+          Yval = interp(ts % range / range);
+
       return [{
         label: d.label,
         color: d.color,
         r: d.r,
         i: index,
-        data: data[0].filter(function (c) {
-          if (c[x_accessor].getTime() == d.x.getTime()) {
-            return true;
-          }
-        })[0]
+        data: (_data = {}, _defineProperty(_data, x_accessor, d.x), _defineProperty(_data, y_accessor, Yval), _data)
       }];
     }).enter().append("circle").attr('stroke-width', 0).attr('opacity', .5).attr("stroke", function (d) {
       return d3.rgb(d.color).darker(1);
@@ -4474,7 +4484,7 @@ MG.button_layout = function (target) {
       return scales.X(d.data[x_accessor]);
     }).attr("cy", function (d, i) {
       //console.log(calculate_height_addition(annotations, d, x_accessor))
-      return scales.Y(d.data[y_accessor]) - calculate_height_addition(annotations, d, x_accessor);
+      return scales.Y(d.data[y_accessor]); //  - calculate_height_addition(annotations, d, x_accessor)
     }).attr("r", function (d) {
       return d.r;
     }).attr("fill", function (d) {

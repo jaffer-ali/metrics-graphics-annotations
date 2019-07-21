@@ -101,20 +101,6 @@
     }
   }
 
-function calculate_height_addition(annotations, d, x_acc){
-  let rad = (Math.pow(d.r, 2) + (3 + d.r)),
-      i = 0;
-  console.log(annotations)
-  for (var ind = 0; ind < annotations.length; ind++) {
-    if(d.data[x_acc].toDateString() == annotations[ind].x.toDateString()){
-      i++;
-      console.log(ind);
-      if(ind == d.i){
-        return (rad * i/1.5);
-      }
-    }
-  }
-}
 
 function remove_overlap(cont, buff){
   cont.selectAll("circle").attr("cy", function(v,i){
@@ -176,7 +162,7 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
         return scales.X(d.data[x_accessor]);
       })
       .attr("cy", function(d, i){
-        return scales.Y(d.data[y_accessor]); // + calculate_height_addition(annotations, d, x_accessor)
+        return scales.Y(d.data[y_accessor]);
       })
       .attr("r", function(d){
         return d.r;

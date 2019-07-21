@@ -103,7 +103,8 @@
 
 
 function remove_overlap(cont, buff){
-  cont.selectAll("circle").attr("cy", function(v,i){
+  var e = cont.selectAll("circle");
+  e.attr("cy", function(v,i){
     if(i > 0 && d3.select(e.nodes()[i - 1]).attr("cy") == d3.select(this).attr("cy")){
       return (parseFloat(d3.select(e.nodes()[i - 1]).attr("cy")) - buff);
     }

@@ -4429,15 +4429,25 @@ MG.button_layout = function (target) {
   var calculate_height_addition = function calculate_height_addition(annotations, d, x_acc) {
     var rad = Math.pow(d.r, 2) + (3 + d.r),
         i = 0;
+    console.log(annotations);
     for (var ind = 0; ind < annotations.length; ind++) {
       if (d.data[x_acc].toDateString() == annotations[ind].x.toDateString()) {
         i++;
-
+        console.log(ind);
         if (ind == d.i) {
           return rad * i / 1.5;
         }
       }
     }
+  };
+
+  var remove_overlap = function remove_overlap(cont, buff) {
+    cont.selectAll("circle").attr("cy", function (v, i) {
+      if (i > 0 && d3.select(e.nodes()[i - 1]).attr("cy") == d3.select(this).attr("cy")) {
+        return parseFloat(d3.select(e.nodes()[i - 1]).attr("cy")) - buff;
+      }
+      return parseFloat(d3.select(e.nodes()[i]).attr("cy"));
+    });
   };
 
   var mg_add_anno = function mg_add_anno(_ref6, svg, rollover_on) {
@@ -4449,6 +4459,7 @@ MG.button_layout = function (target) {
         y_accessor = _ref6.y_accessor,
         default_anno_size = _ref6.default_anno_size,
         annotations = _ref6.annotations;
+
 
     var bisect = d3.bisector(function (datum) {
       return datum[x_accessor];
@@ -4483,8 +4494,7 @@ MG.button_layout = function (target) {
     }).attr("cx", function (d) {
       return scales.X(d.data[x_accessor]);
     }).attr("cy", function (d, i) {
-      //console.log(calculate_height_addition(annotations, d, x_accessor))
-      return scales.Y(d.data[y_accessor]); //  - calculate_height_addition(annotations, d, x_accessor)
+      return scales.Y(d.data[y_accessor]); // + calculate_height_addition(annotations, d, x_accessor)
     }).attr("r", function (d) {
       return d.r;
     }).attr("fill", function (d) {
@@ -4497,6 +4507,8 @@ MG.button_layout = function (target) {
     }).append("title").text(function (d) {
       return d.label;
     });
+
+    remove_overlap(cont, 10);
   };
 
   /*

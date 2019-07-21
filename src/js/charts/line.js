@@ -104,10 +104,11 @@
 function calculate_height_addition(annotations, d, x_acc){
   let rad = (Math.pow(d.r, 2) + (3 + d.r)),
       i = 0;
+  console.log(annotations)
   for (var ind = 0; ind < annotations.length; ind++) {
     if(d.data[x_acc].toDateString() == annotations[ind].x.toDateString()){
       i++;
-
+      console.log(ind);
       if(ind == d.i){
         return (rad * i/1.5);
       }
@@ -115,7 +116,18 @@ function calculate_height_addition(annotations, d, x_acc){
   }
 }
 
+function remove_overlap(cont, buff){
+  cont.selectAll("circle").attr("cy", function(v,i){
+    if(i > 0 && d3.select(e.nodes()[i - 1]).attr("cy") == d3.select(this).attr("cy")){
+      return (parseFloat(d3.select(e.nodes()[i - 1]).attr("cy")) - buff);
+    }
+    return parseFloat(d3.select(e.nodes()[i]).attr("cy"));
+  })
+}
+
 function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size, annotations}, svg, rollover_on) {
+
+
   var bisect = d3.bisector(function(datum) {
     return datum[x_accessor];
   }).right
@@ -164,8 +176,7 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
         return scales.X(d.data[x_accessor]);
       })
       .attr("cy", function(d, i){
-        //console.log(calculate_height_addition(annotations, d, x_accessor))
-        return scales.Y(d.data[y_accessor])//  - calculate_height_addition(annotations, d, x_accessor)
+        return scales.Y(d.data[y_accessor]); // + calculate_height_addition(annotations, d, x_accessor)
       })
       .attr("r", function(d){
         return d.r;
@@ -190,6 +201,8 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
         .text(function(d){
           return d.label;
         });
+
+        remove_overlap(cont, 10);
     }
 
 /*

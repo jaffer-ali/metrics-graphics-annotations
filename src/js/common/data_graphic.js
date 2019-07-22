@@ -31,10 +31,10 @@ MG.options = { // <name>: [<defaultValue>, <availableType>]
   scales: [{}],
   scalefns: [{}],
   // Data
-  annotation_filter: [[], [null, 'function']],
-  annotation_mouseclick: [[], [null, 'function']],
-  annotation_mouseover: [[], [null, 'function']],
-  annotation_mouseout: [[], [null, 'function']],
+  annotation_filter: [null, 'function'],
+  annotation_mouseclick: [null, 'function'],
+  annotation_mouseover: [null, 'function'],
+  annotation_mouseout: [null, 'function'],
   annotations: [[], ['object[]']],
   data: [[], ['object[]', 'number[]']], // the data object
   missing_is_zero: [false, 'boolean'], // assume missing observations are zero

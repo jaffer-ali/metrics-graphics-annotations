@@ -730,10 +730,10 @@ MG.options = { // <name>: [<defaultValue>, <availableType>]
   scales: [{}],
   scalefns: [{}],
   // Data
-  annotation_filter: [[], [null, 'function']],
-  annotation_mouseclick: [[], [null, 'function']],
-  annotation_mouseover: [[], [null, 'function']],
-  annotation_mouseout: [[], [null, 'function']],
+  annotation_filter: [null, 'function'],
+  annotation_mouseclick: [null, 'function'],
+  annotation_mouseover: [null, 'function'],
+  annotation_mouseout: [null, 'function'],
   annotations: [[], ['object[]']],
   data: [[], ['object[]', 'number[]']], // the data object
   missing_is_zero: [false, 'boolean'], // assume missing observations are zero
@@ -4433,7 +4433,7 @@ MG.button_layout = function (target) {
   var remove_overlap = function remove_overlap(cont, buff) {
     var e = cont.selectAll("circle");
     e.attr("cy", function (v, i) {
-      if (i > 0 && Math.abs(d3.select(this).attr("cx") - d3.select(e.nodes()[i - 1]).attr("cx")) < 5 && d3.select(this).attr("visibility") == "visible") {
+      if (i > 0 && Math.abs(d3.select(this).attr("cx") - d3.select(e.nodes()[i - 1]).attr("cx")) < 5 && d3.select(this).attr("visibility") != "hidden") {
         return parseFloat(d3.select(e.nodes()[i - 1]).attr("cy")) - buff;
       }
       return parseFloat(d3.select(e.nodes()[i]).attr("cy"));

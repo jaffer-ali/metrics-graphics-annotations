@@ -730,6 +730,10 @@ MG.options = { // <name>: [<defaultValue>, <availableType>]
   scales: [{}],
   scalefns: [{}],
   // Data
+  annotation_filter: [[], [null, 'function']],
+  annotation_mouseclick: [[], [null, 'function']],
+  annotation_mouseover: [[], [null, 'function']],
+  annotation_mouseout: [[], [null, 'function']],
   annotations: [[], ['object[]']],
   data: [[], ['object[]', 'number[]']], // the data object
   missing_is_zero: [false, 'boolean'], // assume missing observations are zero
@@ -4429,10 +4433,21 @@ MG.button_layout = function (target) {
   var remove_overlap = function remove_overlap(cont, buff) {
     var e = cont.selectAll("circle");
     e.attr("cy", function (v, i) {
-      if (i > 0 && Math.abs(d3.select(this).attr("cx") - d3.select(e.nodes()[i - 1]).attr("cx")) < 5) {
+      if (i > 0 && Math.abs(d3.select(this).attr("cx") - d3.select(e.nodes()[i - 1]).attr("cx")) < 5 && d3.select(this).attr("visibility") == "visible") {
         return parseFloat(d3.select(e.nodes()[i - 1]).attr("cy")) - buff;
       }
       return parseFloat(d3.select(e.nodes()[i]).attr("cy"));
+    });
+  };
+
+  var filter_objects = function filter_objects(cont, annotation_filter) {
+    var e = cont.selectAll("circle");
+    e.attr("visibility", function (d, i) {
+      if (annotation_filter(d, i) == true) {
+        return "visible";
+      } else {
+        return "hidden";
+      }
     });
   };
 
@@ -4444,8 +4459,10 @@ MG.button_layout = function (target) {
         x_accessor = _ref6.x_accessor,
         y_accessor = _ref6.y_accessor,
         default_anno_size = _ref6.default_anno_size,
-        annotations = _ref6.annotations;
-
+        annotations = _ref6.annotations,
+        annotation_mouseover = _ref6.annotation_mouseover,
+        annotation_mouseout = _ref6.annotation_mouseout,
+        annotation_filter = _ref6.annotation_filter;
 
     var bisect = d3.bisector(function (datum) {
       return datum[x_accessor];
@@ -4475,7 +4492,9 @@ MG.button_layout = function (target) {
         i: index,
         data: (_data = {}, _defineProperty(_data, x_accessor, d.x), _defineProperty(_data, y_accessor, Yval), _data)
       }];
-    }).enter().append("circle").attr('stroke-width', 0).attr('opacity', .5).attr("stroke", function (d) {
+    }).enter().append("circle").attr('stroke-width', 0).attr('opacity', .5).attr('d', function (d) {
+      return JSON.stringify(d);
+    }).attr("stroke", function (d) {
       return d3.rgb(d.color).darker(1);
     }).attr("cx", function (d) {
       return scales.X(d.data[x_accessor]);
@@ -4488,12 +4507,24 @@ MG.button_layout = function (target) {
     }).on("mouseover", function (d, i) {
       d3.select(this).transition().duration(150).attr('stroke-width', 1);
       rollover_on(d.data);
+      if (typeof annotation_mouseover == "function") {
+        annotation_mouseover(d);
+      }
+    }).on("mouseclick", function (d, i) {
+      if (typeof annotation_mouseclick == "function") {
+        annotation_mouseclick(d);
+      }
     }).on("mouseout", function (d) {
       d3.select(this).transition().duration(150).attr('stroke-width', 0);
+
+      if (typeof annotation_mouseout == "function") {
+        annotation_mouseout(d);
+      }
     }).append("title").text(function (d) {
       return d.label;
     });
 
+    filter_objects(cont, annotation_filter);
     remove_overlap(cont, 10);
   };
 

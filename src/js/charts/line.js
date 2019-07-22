@@ -105,16 +105,26 @@
 function remove_overlap(cont, buff){
   var e = cont.selectAll("circle");
   e.attr("cy", function(v,i){
-    if(i > 0 && (Math.abs(d3.select(this).attr("cx") - d3.select(e.nodes()[i - 1]).attr("cx"))) < 5){
+    if(i > 0 && Math.abs(d3.select(this).attr("cx") - d3.select(e.nodes()[i - 1]).attr("cx")) < 5 && d3.select(this).attr("visibility") == "visible"){
       return (parseFloat(d3.select(e.nodes()[i - 1]).attr("cy")) - buff);
     }
     return parseFloat(d3.select(e.nodes()[i]).attr("cy"));
   })
 }
 
-function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size, annotations}, svg, rollover_on) {
+function filter_objects(cont, annotation_filter){
+  var e = cont.selectAll("circle");
+  e.attr("visibility", function(d, i){
+    if(annotation_filter(d,i) == true){
+      return "visible"
+    }
+    else{
+      return "hidden"
+    }
+  })
+}
 
-
+function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, default_anno_size, annotations, annotation_mouseover, annotation_mouseout, annotation_filter}, svg, rollover_on) {
   var bisect = d3.bisector(function(datum) {
     return datum[x_accessor];
   }).right
@@ -156,6 +166,9 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
       .append("circle")
       .attr('stroke-width', 0)
       .attr('opacity', .5)
+      .attr('d', function(d){
+        return JSON.stringify(d);
+      })
       .attr("stroke", function(d){
         return d3.rgb(d.color).darker(1);
       })
@@ -177,18 +190,31 @@ function mg_add_anno({data, target, colors, scales, x_accessor, y_accessor, defa
           .duration(150)
           .attr('stroke-width', 1);
         rollover_on(d.data);
+        if(typeof annotation_mouseover == "function"){
+          annotation_mouseover(d);
+        }
+      })
+      .on("mouseclick", function(d, i){
+        if(typeof annotation_mouseclick == "function"){
+          annotation_mouseclick(d);
+        }
       })
       .on("mouseout", function(d){
         d3.select(this)
           .transition()
           .duration(150)
           .attr('stroke-width', 0);  
+
+        if(typeof annotation_mouseout == "function"){
+          annotation_mouseout(d);
+        }
       })
       .append("title")
         .text(function(d){
           return d.label;
         });
 
+        filter_objects(cont, annotation_filter);
         remove_overlap(cont, 10);
     }
 

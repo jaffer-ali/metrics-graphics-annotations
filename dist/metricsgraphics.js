@@ -4467,8 +4467,8 @@ MG.button_layout = function (target) {
     var bisect = d3.bisector(function (datum) {
       return datum[x_accessor];
     }).right;
-    var cont = svg.append("g");
-    cont.selectAll("circle").attr("class", "mg-anno").data(annotations.filter(function (d) {
+    var cont = svg.append("g").attr("class", "mg-anno");
+    cont.selectAll("circle").data(annotations.filter(function (d) {
       if (d.x > data[0][0][x_accessor] && d.x < data[0][data[0].length - 1][x_accessor]) {
         return true;
       } else {
@@ -4682,7 +4682,7 @@ MG.button_layout = function (target) {
     // remove the old rollovers if they already exist
     mg_selectAll_and_remove(svg, '.mg-rollover-rect');
     mg_selectAll_and_remove(svg, '.mg-voronoi');
-
+    mg_selectAll_and_remove(svg, '.mg-anno');
     // remove the old rollover text and circle if they already exist
     mg_selectAll_and_remove(svg, '.mg-active-datapoint');
     mg_selectAll_and_remove(svg, '.mg-line-rollover-circle');
